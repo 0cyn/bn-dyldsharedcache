@@ -11,8 +11,8 @@ from binaryninja.types import Symbol
 import os.path 
 this_script = os.path.realpath(__file__)
 this_dir = os.path.dirname(this_script)
-sys.path.append(this_dir)
-sys.path.append(this_dir + os.path.sep + 'ktool')
+sys.path.insert(0, this_dir)
+sys.path.insert(0, this_dir + os.path.sep + 'ktool')
 
 from io import BytesIO
 
