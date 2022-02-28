@@ -145,11 +145,8 @@ class DyldSharedCacheView(BinaryView):
             self.add_function(function_start)
             if function_start in image.symbols:
                 self.define_auto_symbol(Symbol(SymbolType.FunctionSymbol, function_start, image.symbols[function_start].fullname))
-        
-        show_message_box('Image Loaded!', 'Please Swap the View type (top left) from "DyldCacheExtractor" to "Mach-O"', MessageBoxButtonSet.OKButtonSet, MessageBoxIcon.InformationIcon)
-        
-        self.abort_analysis() 
 
+        self.abort_analysis()
         return True
 
 
