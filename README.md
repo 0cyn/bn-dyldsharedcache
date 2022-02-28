@@ -1,7 +1,7 @@
 # Dyld Shared Cache Parser
 Author: **cynder (kat)**
 
-_Dyld Shared Cache Support for BinaryNinja. Built on DyldExtractor_
+_Dyld Shared Cache Support for BinaryNinja_
 
 ![BinaryNinja Screenshot](.github/sbui.png?raw=true "Screenshot")
 
@@ -27,8 +27,6 @@ This project acts as an interface for two seperate projects; DyldExtractor, and 
 This version of DyldExtractor has a lot of modifications (read: a lot of commented out lines) from the original designed to make it function better in the binja environment. 
 
 [ktool](https://github.com/cxnder/ktool) is a multifaceted project I wrote for, primarily, MachO + ObjC Parsing.
-
-I use it here because we store DyldExtractor's output in a BytesIO object, which ktool can handle and parse as if it's a valid MachO; and also because ktool is designed to work very well with DyldExtractor output. 
 
 It is mainly used for super basic parsing of the output, as we need to properly write the segments to the VM (and scrap all the dsc data that was originally in this file) so the Mach-O View knows how to parse it. 
 

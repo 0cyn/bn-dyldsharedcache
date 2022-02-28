@@ -1,14 +1,13 @@
-
 from binaryninja import *
-
-from binaryninja.enums import SegmentFlag, SymbolType
-from binaryninja.platform import Platform
 from binaryninja.binaryview import BinaryView
-from binaryninja.types import Symbol
+from binaryninja.platform import Platform
 
-#  k, binja doesn't want to load mods in a plugin's dir 
+#  binja doesn't want to load mods in a plugin's dir
 #  so hopefully we can just hack that in manually
-import os.path 
+#  We do this after importing binaryninja, because in my local workspace I embed a copy of
+#       the binaryninja API so my IDE can handle intellisense
+#       This wont interfere since binja wont see that dir properly
+
 this_script = os.path.realpath(__file__)
 this_dir = os.path.dirname(this_script)
 sys.path.insert(0, this_dir)
@@ -16,52 +15,27 @@ sys.path.insert(0, this_dir + os.path.sep + 'ktool')
 
 from io import BytesIO
 
-
 from DyldExtractor.extraction_context import ExtractionContext
 from DyldExtractor.macho.macho_context import MachOContext
 from DyldExtractor.dyld.dyld_context import DyldContext
 
-from DyldExtractor.dyld.dyld_structs import (
-	dyld_cache_image_info
-)
-
 from DyldExtractor.converter import (
-	slide_info,
-	macho_offset,
-	linkedit_optimizer,
-	stub_fixer,
-	objc_fixer
+    slide_info,
+    macho_offset,
+    linkedit_optimizer,
+    stub_fixer,
+    objc_fixer
 )
 
 import ktool
 
+
 def internal_print_rewrite(msg):
-    log.log(1, msg)
+    log.log(LogLevel.InfoLog, msg)
+
 
 print = internal_print_rewrite
 
-def list_images(dsc_filename):
-    
-    dsc_modules = []
-
-    with open(dsc_filename, "rb") as f:
-        print('Opening Context')
-        dyldCtx = DyldContext(f)
-
-        print(f'Found {len(dyldCtx.images)} images')
-
-        # enumerate images, create a map of paths and images
-        imageMap = {}
-        print('Iterating Images')
-        for imageData in dyldCtx.images:
-
-            path = dyldCtx.readString(imageData.pathFileOffset)
-            path = path[0:-1]  # remove null terminator
-            path = path.decode("utf-8")
-
-            dsc_modules.append(path)
-    
-    return dsc_modules
 
 class DyldCacheHander:
     def __init__(self, filename):
@@ -71,11 +45,10 @@ class DyldCacheHander:
 
         self.fp = open(filename, 'rb')
         self.dyld_context = None
-    
+
     def populate_image_list(self):
         self.dyld_context = DyldContext(self.fp)
         for imageData in self.dyld_context.images:
-
             path = self.dyld_context.readString(imageData.pathFileOffset)
             path = path[0:-1]  # remove null terminator
             path = path.decode("utf-8")
@@ -84,6 +57,7 @@ class DyldCacheHander:
             self.image_map[path] = imageData
 
 
+# noinspection PyAbstractClass
 class DyldSharedCacheView(BinaryView):
     name = "DyldSharedCache"
     long_name = "Dyld Shared Cache Loader"
@@ -98,26 +72,27 @@ class DyldSharedCacheView(BinaryView):
         self.platform = Platform[f"mac-aarch64"]
 
         self.cache_handler.populate_image_list()
-        mod_index = get_choice_input(f'Found {len( self.cache_handler.images)} Images', f'Select Image', self.cache_handler.images)
+        mod_index = get_choice_input(f'Found {len(self.cache_handler.images)} Images', f'Select Image',
+                                     self.cache_handler.images)
         mod = self.cache_handler.images[mod_index]
         image = self.cache_handler.image_map[mod]
 
-        machoOffset, context = self.cache_handler.dyld_context.convertAddr(image.address)
-        machoCtx = MachOContext(context.fileObject, machoOffset, True)
-        
-        extractionCtx = ExtractionContext(self.cache_handler.dyld_context, machoCtx)
+        _macho_offset, context = self.cache_handler.dyld_context.convertAddr(image.address)
+        macho_ctx = MachOContext(context.fileObject, _macho_offset, True)
 
-        slide_info.processSlideInfo(extractionCtx)
-        linkedit_optimizer.optimizeLinkedit(extractionCtx)
-        stub_fixer.fixStubs(extractionCtx)
-        objc_fixer.fixObjC(extractionCtx)
+        extraction_ctx = ExtractionContext(self.cache_handler.dyld_context, macho_ctx)
 
-        writeProcedures = macho_offset.optimizeOffsets(extractionCtx)
+        slide_info.processSlideInfo(extraction_ctx)
+        linkedit_optimizer.optimizeLinkedit(extraction_ctx)
+        stub_fixer.fixStubs(extraction_ctx)
+        objc_fixer.fixObjC(extraction_ctx)
+
+        write_procedures = macho_offset.optimizeOffsets(extraction_ctx)
 
         virt_macho = BytesIO()
 
         # Write the MachO file
-        for procedure in writeProcedures:
+        for procedure in write_procedures:
             virt_macho.seek(0)
             virt_macho.seek(procedure.writeOffset)
             virt_macho.write(
@@ -126,29 +101,18 @@ class DyldSharedCacheView(BinaryView):
 
         virt_macho.seek(0)
 
-        # there is finally a valid reason for me writing ktool to support BytesIO! :)
         image = ktool.load_image(virt_macho)
-
-        # ! if we made it this far, we have a valid macho. yay!
 
         for segment in image.segments.values():
             segment: ktool.macho.Segment = segment
-            bn_flags = 0
             seg_dat = image.get_bytes_at(segment.file_address, segment.size)
             # We can map all of these as RWX or ---, it makes no difference. 
             # This view wont be analyzing, and MachO or ObjectiveNinja will properly map them. 
-            self.add_auto_segment(segment.vm_address, segment.size, segment.file_address, segment.size, SegmentFlag.SegmentReadable | SegmentFlag.SegmentWritable | SegmentFlag.SegmentExecutable)
-        
+            self.add_auto_segment(segment.vm_address, segment.size, segment.file_address, segment.size, SegmentFlag.SegmentReadable)
             self.write(segment.vm_address, bytes(seg_dat))
-
-        for function_start in image.function_starts:
-            self.add_function(function_start)
-            if function_start in image.symbols:
-                self.define_auto_symbol(Symbol(SymbolType.FunctionSymbol, function_start, image.symbols[function_start].fullname))
 
         self.abort_analysis()
         return True
-
 
     @classmethod
     def is_valid_for_data(cls, data):
