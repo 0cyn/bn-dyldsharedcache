@@ -9,8 +9,6 @@ Without any of the fuss of requiring manually loading several unrelated images, 
 
 ## Installation + Usage
 
-**IMPORTANT: Once it has finished loading in the data, swap the View (top left drop-down selector) to MachO!**
-
 1. Install capstone via pip for the same python interpreter your BinaryNinja install is using. 
 2. git clone (or download and unzip) this folder to your BinaryNinja plugins folder.
 
@@ -18,9 +16,7 @@ Without any of the fuss of requiring manually loading several unrelated images, 
 
 1. Open Dyld Shared Cache file with BN
 2. Select the Image you would like to disassemble
-3. Wait for the Image to be loaded in
-4. Once you see the prompt to change Views, swap the View type (in the top left corner of the main View) from "DyldCacheExtractor" to Mach-O. 
-5. Congrats, you are now reversing the image as if it were a regular Mach-O! :)
+3. Congrats, you are now Reverse Engineering the Mach-O
 
 ## Description:
 
