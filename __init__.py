@@ -9,11 +9,9 @@ class DSCViewWatcher(UIContextNotification):
 	def __init__(self):
 		UIContextNotification.__init__(self)
 		UIContext.registerNotification(self)
-		print("py UIContext.registerNotification")
 
 	def __del__(self):
 		UIContext.unregisterNotification(self)
-		print("py UIContext.unregisterNotification")
 
 	def OnAfterOpenFile(self, context, file, frame):
 		# We only want to auto-switch DyldSharedCache views
