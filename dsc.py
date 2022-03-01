@@ -2,6 +2,8 @@ from binaryninja import *
 from binaryninja.binaryview import BinaryView
 from binaryninja.platform import Platform
 
+from .browser import ImagePickerDialog
+
 #  binja doesn't want to load mods in a plugin's dir
 #  so hopefully we can just hack that in manually
 #  We do this after importing binaryninja, because in my local workspace I embed a copy of
@@ -72,10 +74,22 @@ class DyldSharedCacheView(BinaryView):
         self.platform = Platform[f"mac-aarch64"]
 
         self.cache_handler.populate_image_list()
-        mod_index = get_choice_input(f'Found {len(self.cache_handler.images)} Images', f'Select Image',
+
+        # Use the fancy image picker if the UI is enabled
+        if core_ui_enabled():
+            ipd = ImagePickerDialog(self.cache_handler.images)
+            ipd.run()
+
+            # Can happen if the dialog is rejected
+            if ipd.chosen_image is None:
+                return False
+
+            image = self.cache_handler.image_map[ipd.chosen_image]
+        else:
+            mod_index = get_choice_input(f'Found {len(self.cache_handler.images)} Images', f'Select Image',
                                      self.cache_handler.images)
-        mod = self.cache_handler.images[mod_index]
-        image = self.cache_handler.image_map[mod]
+            mod = self.cache_handler.images[mod_index]
+            image = self.cache_handler.image_map[mod]
 
         _macho_offset, context = self.cache_handler.dyld_context.convertAddr(image.address)
         macho_ctx = MachOContext(context.fileObject, _macho_offset, True)
