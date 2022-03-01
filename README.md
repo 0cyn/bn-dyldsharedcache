@@ -3,7 +3,9 @@ Author: **cynder (kat)**
 
 _Dyld Shared Cache Support for BinaryNinja_
 
-![BinaryNinja Screenshot](.github/sbui.png?raw=true "Screenshot")
+![BinaryNinja Screenshot](.github/sel.png?raw=true "Image Selection")
+
+![BinaryNinja Screenshot](.github/sbui.png?raw=true "Disassembly View")
 
 Without any of the fuss of requiring manually loading several unrelated images, or the awful off-image addresses, and with better output than IDA, Hopper, or any other disassembler on the market. 
 
