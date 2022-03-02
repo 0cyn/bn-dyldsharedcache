@@ -11,8 +11,8 @@ Without any of the fuss of requiring manually loading several unrelated images, 
 
 ## Installation + Usage
 
-1. Install capstone via pip for the same python interpreter your BinaryNinja install is using. 
-2. git clone (or download and unzip) this folder to your BinaryNinja plugins folder.
+1. Open the plugin manager
+2. Search for "Dyld" and install this plugin
 
 ### Usage:
 
