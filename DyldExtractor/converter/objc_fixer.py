@@ -9,15 +9,15 @@ from typing import (
 	Generator
 )
 
-from DyldExtractor.extraction_context import ExtractionContext
-from DyldExtractor.macho.macho_context import MachOContext
+from ..extraction_context import ExtractionContext
+from ..macho.macho_context import MachOContext
 
-from DyldExtractor.converter import (
+from ..converter import (
 	slide_info,
 	stub_fixer
 )
 
-from DyldExtractor.objc.objc_structs import (
+from ..objc.objc_structs import (
 	objc_category_t,
 	objc_class_data_t,
 	objc_class_t,
@@ -32,7 +32,7 @@ from DyldExtractor.objc.objc_structs import (
 	objc_protocol_t
 )
 
-from DyldExtractor.macho.macho_structs import (
+from ..macho.macho_structs import (
 	LoadCommands,
 	linkedit_data_command,
 	mach_header_64,
