@@ -1,6 +1,8 @@
 # Dyld Shared Cache Parser
 Author: **cynder (kat)**
 
+This was converted into a first class feature and this plugin is no longer maintained. 
+
 _Dyld Shared Cache Support for BinaryNinja_
 
 ![BinaryNinja Screenshot](.github/sel.png?raw=true "Image Selection")
