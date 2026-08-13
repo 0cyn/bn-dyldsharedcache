@@ -24,7 +24,7 @@ Without any of the fuss of requiring manually loading several unrelated images, 
 
 ## Description:
 
-This project acts as an interface for two seperate projects; DyldExtractor, and ktool. Mainly DyldExtractor.
+This project acts as an interface for two separate projects; DyldExtractor, and ktool. Mainly DyldExtractor.
 
 [DyldExtractor](https://github.com/arandomdev/DyldExtractor) is a project written primarily by 'arandomdev' designed for CLI standalone dyld_shared_cache extraction. It is *the* best tool for the job, and reverses the majority of "optimizations" that make DSC reverse engineering ugly and painful. Utilizing this plugin, Binja's processing should outperform IDAs, and wont require IDA's need for repeatedly right clicking and manually loading tons of modules.
 
